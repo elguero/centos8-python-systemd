@@ -79,7 +79,8 @@ sed -i 's/py\.test/pytest/' Makefile
 %if %{with python2}
 make PYTHON=%{__python2} build
 %endif # with python2
-make PYTHON=%{__python3} build
+# Define LIBSYSTEMD_VERSION here to fix build - https://bugzilla.redhat.com/show_bug.cgi?id=1862714
+make LIBSYSTEMD_VERSION=`pkg-config --modversion libsystemd | sed 's/^\([0-9]*\)\(.*\)$/\1/'` PYTHON=%{__python3} build
 %if %{with doc}
 make PYTHON=%{__python3} SPHINX_BUILD=sphinx-build-3 sphinx-html
 rm -r build/html/.buildinfo build/html/.doctrees
@@ -104,7 +105,8 @@ test -f /run/systemd/journal/stdout || \
 %if %{with python2}
 make PYTHON=%{__python2} check
 %endif # with python2
-make PYTHON=%{__python3} check
+# Skip test that is failing due to permissions - https://bugzilla.redhat.com/show_bug.cgi?id=1793022
+make TESTFLAGS="-k 'not test_notify_no_socket'" PYTHON=%{__python3} check
 
 %if %{with python2}
 %files -n python2-systemd
